@@ -3,9 +3,9 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer 
 import math
-import pandas as pd
 import copy
 import numpy as np
+import pickle
 
 docSize = 1095
 stopwords = set(stopwords.words('english'))
