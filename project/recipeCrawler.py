@@ -1,5 +1,5 @@
 import scrapy
-
+import os
 
 def Cleaning(rawList):
 	if rawList == "" or rawList == " ":
@@ -11,6 +11,9 @@ class RecipeSpider(scrapy.Spider):
 	start_urls = ['https://www.yummly.com/recipes']
 	path = "recipes/"
 	recipeNum = 0
+
+	if not os.path.exists(path):
+		os.mkdir(path,0o777)
 
 	def parse(self, response):
 		SET_SELECTOR = ".recipe-card"
