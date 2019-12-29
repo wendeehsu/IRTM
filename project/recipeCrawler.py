@@ -1,5 +1,6 @@
 import scrapy
 import os
+import json
 
 def Cleaning(rawList):
 	if rawList == "" or rawList == " ":
@@ -8,7 +9,9 @@ def Cleaning(rawList):
 
 class RecipeSpider(scrapy.Spider):
 	name = "recipe_spider"
-	start_urls = ['https://www.yummly.com/recipes']
+	requiresRecipeNum = 10
+	yummlyUrl = "https://mapi.yummly.com/mapi/v17/content/search?solr.seo_boost=new&start=1&maxResult=" + str(requiresRecipeNum) + "&fetchUserCollections=false&allowedContent=single_recipe&allowedContent=suggested_search&allowedContent=related_search&allowedContent=article&allowedContent=video&allowedContent=generic_cta&guided-search=true&solr.view_type=search_internal"
+	start_urls = [yummlyUrl]
 	path = "recipes/"
 	recipeNum = 0
 
@@ -16,11 +19,10 @@ class RecipeSpider(scrapy.Spider):
 		os.mkdir(path,0o777)
 
 	def parse(self, response):
-		SET_SELECTOR = ".recipe-card"
-		URL_SELECTOR = ".card-title::attr(href)"
+		data = json.loads(response.body)
 
-		for recipe in response.css(SET_SELECTOR):
-			link = "https://www.yummly.com" + recipe.css(URL_SELECTOR).extract_first()
+		for item in data.get('feed', []):
+			link = "https://www.yummly.com/" + item.get("tracking-id")
 			request = response.follow(link, callback=self.parseRecipe)
 			yield request
 	
