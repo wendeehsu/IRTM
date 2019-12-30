@@ -7,6 +7,76 @@ import copy
 import numpy as np
 import pickle
 
+class Node(object):
+    def __init__(self):
+        self.index = 0
+        self.cos = 0
+        
+    def __init__(self, index, cos):
+        self.index = index
+        self.cos = cos
+        
+    def peek(self):
+        print("(" + str(self.index) + "," + str(self.cos) + ")")
+
+class MinHeap(object):
+    def __init__(self):
+        self.arr = [Node(0,0)] # first node is unused
+        self.count = 0
+    
+    def getMin(self):
+        if self.count > 0:
+            self.arr[1].peak()
+            return self.arr[1]
+        return False
+    
+    def getAll(self):
+        for i in self.arr[1:]:
+            i.peek()
+    
+    def shiftUp(self, node, pos):
+        if pos > 1:
+            parent = self.arr[pos//2]
+            if parent.cos > node.cos:
+                self.arr[pos//2], self.arr[pos] = node, self.arr[pos//2]
+                self.shiftUp(node,pos//2)
+                
+    def push(self, node):
+        self.arr.append(node)
+        self.count += 1
+        self.shiftUp(node, self.count)
+    
+    def getNode(self, index):
+        for i,node in enumerate(self.arr):
+            if node.index == index and i != 0:
+                return i,node
+        print("node not found")
+        return False
+    
+    def shiftDown(self, node, pos):
+        if pos*2 <= self.count: # left tree
+            minIndex = pos*2
+            minNode = self.arr[minIndex]
+            if (minIndex+1) <= self.count and minNode.cos > self.arr[minIndex+1].cos:
+                minIndex = minIndex + 1
+                minNode = self.arr[minIndex]
+            
+            if node.cos > minNode.cos:
+                self.arr[pos] , self.arr[minIndex] = minNode, node
+                self.shiftDown(node,minIndex)
+    
+    def pop(self, docIndex):
+        index, node = self.getNode(docIndex)
+        self.arr[index], self.arr[self.count] = self.arr[self.count], node
+        del self.arr[self.count]
+        self.count -= 1
+        self.shiftDown(self.arr[index],index)
+        
+    def update(self, node):
+        self.pop(node.index)
+        self.push(node)
+
+
 docSize = 1095
 stopwords = set(stopwords.words('english'))
 
@@ -82,7 +152,7 @@ vectors = []
 for i in range(1,docSize + 1):
     vectors.append(GetVector(id2word[i]))
 
-sampleSize = docSize  # change to docSize when we are ready to run
+sampleSize = 5  # change to docSize when we are ready to run
 def SetMatrix():
     simMatrix = np.zeros(shape=(sampleSize,sampleSize))
     for i in range(sampleSize):
@@ -90,6 +160,19 @@ def SetMatrix():
             simMatrix[i][j] = cosine(vectors[i],vectors[j])
 
     return simMatrix
+
+def SetHeap():
+    heapDic = {}
+    for i in range(sampleSize):
+        heap = MinHeap()
+        for j in range(sampleSize):
+            if i != j:
+                cos = cosine(vectors[i],vectors[j])
+                heap.push(Node(j,cos))
+        heapDic[i] = heap
+
+    return heapDic
+
 
 def FindMaxSim(matrix, availList):
     maxSim = -1
@@ -135,6 +218,7 @@ def updateCluster(dic,pair):  # pair = (大,小)
 def HAC():
     availability = [1] * sampleSize
     log = {} # {clusterAmout : list of clusters}
+    heapDic = SetHeap()
     simMatrix = SetMatrix()
     clusters = InitClusters()
     
@@ -150,9 +234,9 @@ def HAC():
         log[clusterAmount] = copy.deepcopy(clusters)
     
     return log
-    
+
 hacLog = HAC()
-hacLogFile = open('hacLog.pkl', 'ab') 
+hacLogFile = open('hacLog.pkl', 'wb') 
 pickle.dump(hacLog, hacLogFile)
 
 def SaveCluster(num):
