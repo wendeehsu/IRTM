@@ -25,3 +25,25 @@ final_cindy/
 期中考古/2013/_DS_Store
 
 project/__pycache__/recipeCrawler.cpython-37.pyc
+
+project/egg\+milk\+flour.json
+
+project/ham\+cheese.json
+
+project/categoryList.pickle
+
+project/cp.pickle
+
+project/docId2KaggleType.pickle
+
+project/docId2NormalizedKaggleType.pickle
+
+project/ingredientDic.pickle
+
+project/ingredientList.pickle
+
+project/kaggleData.pickle
+
+project/priorDic.pickle
+
+project/vectors.pickle
